@@ -4,6 +4,7 @@ import tkinter.ttk as ttk
 import os
 from datetime import datetime
 from PIL import ImageTk,Image 
+from PIL.ExifTags import TAGS
 import json
 
 ## see here: https://stackoverflow.com/questions/40533812/tkinter-treeview-click-event-for-selected-item
@@ -84,11 +85,10 @@ def process_directory(parent, path, tree):
     
 root = tk.Tk()
 root.title("PyViewer")
-root.geometry('800x550')
+root.geometry('800x500')
 
-# frame
-frame = tk.Frame(root, relief="groove",borderwidth=2)
-frame.pack(expand=True)
+# frames
+frameup = tk.Frame(root)
 
 # menu bar
 menubar = tk.Menu(root)
@@ -98,11 +98,12 @@ filemenu.add_command(label="Exit",command=root.quit)
 menubar.add_cascade(label="File", menu=filemenu)
 root.config(menu=menubar)
 
+
 # tree viewer
 
-tree = ttk.Treeview(frame,height=10)
-ysb = ttk.Scrollbar(frame, orient='vertical', command=tree.yview)
-xsb = ttk.Scrollbar(frame, orient='horizontal', command=tree.xview)
+tree = ttk.Treeview(frameup,height=10)
+ysb = ttk.Scrollbar(frameup, orient='vertical', command=tree.yview)
+xsb = ttk.Scrollbar(frameup, orient='horizontal', command=tree.xview)
 tree.configure(yscroll=ysb.set, xscroll=xsb.set)
 tree["columns"] = ("1","2","3")
 tree.column("#0",width=475,minwidth=100)
@@ -120,14 +121,22 @@ root_node = tree.insert('', 'end', values=(date,size,fext), text=fname, open=Tru
 tree.bind('<<TreeviewSelect>>', onClickedItem)
 process_directory(root_node, current_directory,tree)
 
-tree.grid(row=0, column=0,columnspan=2)
-ysb.grid(row=0, column=2, sticky='ns')
-xsb.grid(row=1, column=0, columnspan=2,sticky='ew')
+tree.grid(row=0, column=0)
+ysb.grid(row=0, column=1, sticky='ns')
+xsb.grid(row=1, column=0, sticky='ew')
+frameup.grid()
+
+frameup.pack(side="top", fill="both", expand=True)
+
 
 # canvas
-canvas = tk.Canvas(frame, width = 250, height = 250)  
-canvas.grid(row=2, column=0)
-img = Image.open(current_directory + "/IMG_20180402_120459.jpg")
+framedw = tk.Frame(root)
+
+canvas = tk.Canvas(framedw, width = 250, height = 250)  
+#canvas.pack(side="left",fill="both",expand=True)
+canvas.grid(row=0, column=0)
+fname = current_directory + "/IMG_20180402_120459.jpg"
+img = Image.open(fname)
 h,w = img.size
 scale = 250./max([h,w])
 h, w = int(h*scale),int(w*scale)
@@ -139,10 +148,31 @@ this_img_id = image_id
 this_img = image
 
 # text
-text = tk.Text(frame, height=15, width=55)
-text.insert(tk.END, "")
-text.grid(row=2, column=1)
+text = tk.Text(framedw, height=15)
+#text.pack(side = "right",fill="both",expand=True)
+text.grid(row=0, column=1, sticky='ns')
+# fjson = fname + ".json"
+# if os.path.isfile(fjson):
+#     json_info = json.load(open(fjson))
+#     text.delete(1.0,tk.END)
+#     text.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
+tt = ""
+exifdata = img.getexif()
+for tag_id in exifdata:
+    # get the tag name, instead of human unreadable tag id
+    tag = TAGS.get(tag_id, tag_id)
+    data = exifdata.get(tag_id)
+    # decode bytes 
+    if isinstance(data, bytes):
+        #data = data.decode('utf-8', errors='ignore')
+        pass
+    tt += f"{tag:25}: {data}\n"
+text.delete(1.0,tk.END)
+text.insert(1.0,tt)
 this_text = text
-frame.grid()
+
+#framedw.grid()
+
+framedw.pack(side="top", fill="both", expand=True)
 
 root.mainloop()
