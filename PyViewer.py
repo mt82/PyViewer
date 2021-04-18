@@ -57,11 +57,24 @@ def onClickedItem(event):
             img = img.resize((h,w))
             this_img = ImageTk.PhotoImage(img)
             this_canvas.itemconfig(this_img_id, image = this_img)
-            fjson = fname + ".json"
-            if os.path.isfile(fjson):
-                json_info = json.load(open(fjson))
-                this_text.delete(1.0,tk.END)
-                this_text.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
+            # fjson = fname + ".json"
+            # if os.path.isfile(fjson):
+            #     json_info = json.load(open(fjson))
+            #     this_text.delete(1.0,tk.END)
+            #     this_text.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
+            tt = ""
+            exifdata = img.getexif()
+            for tag_id in exifdata:
+                # get the tag name, instead of human unreadable tag id
+                tag = TAGS.get(tag_id, tag_id)
+                data = exifdata.get(tag_id)
+                # decode bytes 
+                if isinstance(data, bytes):
+                    #data = data.decode('utf-8', errors='ignore')
+                    pass
+                tt += f"{tag:30}: {data}\n"
+            text.delete(1.0,tk.END)
+            text.insert(1.0,tt)
 
 
 def onOpenFolder():
@@ -166,7 +179,7 @@ for tag_id in exifdata:
     if isinstance(data, bytes):
         #data = data.decode('utf-8', errors='ignore')
         pass
-    tt += f"{tag:25}: {data}\n"
+    tt += f"{tag:27}: {data}\n"
 text.delete(1.0,tk.END)
 text.insert(1.0,tt)
 this_text = text
