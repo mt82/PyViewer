@@ -5,9 +5,24 @@ import os
 from datetime import datetime
 from PIL import ImageTk,Image 
 from PIL.ExifTags import TAGS
+from PIL.ExifTags import GPSTAGS
 import json
 
-## see here: https://stackoverflow.com/questions/40533812/tkinter-treeview-click-event-for-selected-item
+def get_geotagging(exif):
+    if not exif:
+        raise ValueError("No EXIF metadata found")
+
+    geotagging = {}
+    for (idx, tag) in TAGS.items():
+        if tag == 'GPSInfo':
+            if idx not in exif:
+                raise ValueError("No EXIF geotagging found")
+
+            for (key, val) in GPSTAGS.items():
+                if key in exif[idx]:
+                    geotagging[val] = exif[idx][key]
+
+    return geotagging
 
 current_directory = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/Pictures/from Google/Takeout/Google Photos/AcetAia 2018"
 this_tree = None
@@ -69,10 +84,9 @@ def onClickedItem(event):
                 tag = TAGS.get(tag_id, tag_id)
                 data = exifdata.get(tag_id)
                 # decode bytes 
-                if isinstance(data, bytes):
+                if not isinstance(data, bytes):
                     #data = data.decode('utf-8', errors='ignore')
-                    pass
-                tt += f"{tag:30}: {data}\n"
+                    tt += f"{tag:30}: {data}\n"
             text.delete(1.0,tk.END)
             text.insert(1.0,tt)
 
@@ -98,10 +112,9 @@ def process_directory(parent, path, tree):
     
 root = tk.Tk()
 root.title("PyViewer")
-root.geometry('800x500')
 
 # frames
-frameup = tk.Frame(root)
+frame = tk.Frame(root)
 
 # menu bar
 menubar = tk.Menu(root)
@@ -114,15 +127,15 @@ root.config(menu=menubar)
 
 # tree viewer
 
-tree = ttk.Treeview(frameup,height=10)
-ysb = ttk.Scrollbar(frameup, orient='vertical', command=tree.yview)
-xsb = ttk.Scrollbar(frameup, orient='horizontal', command=tree.xview)
+tree = ttk.Treeview(frame)
+ysb = ttk.Scrollbar(frame, orient='vertical', command=tree.yview)
+xsb = ttk.Scrollbar(frame, orient='horizontal', command=tree.xview)
 tree.configure(yscroll=ysb.set, xscroll=xsb.set)
 tree["columns"] = ("1","2","3")
-tree.column("#0",width=475,minwidth=100)
-tree.column("1",width=100,minwidth=100)
-tree.column("2",width=100,minwidth=100)
-tree.column("3",width=100,minwidth=100)
+tree.column("#0",width=150,minwidth=10)
+tree.column("1",width=50,minwidth=10)
+tree.column("2",width=50,minwidth=10)
+tree.column("3",width=50,minwidth=10)
 tree.heading('#0', text="Name", anchor='w')
 tree.heading('1', text="Date", anchor='w')
 tree.heading('2', text="Size", anchor='w')
@@ -134,41 +147,51 @@ root_node = tree.insert('', 'end', values=(date,size,fext), text=fname, open=Tru
 tree.bind('<<TreeviewSelect>>', onClickedItem)
 process_directory(root_node, current_directory,tree)
 
-tree.grid(row=0, column=0)
-ysb.grid(row=0, column=1, sticky='ns')
-xsb.grid(row=1, column=0, sticky='ew')
-frameup.grid()
-
-frameup.pack(side="top", fill="both", expand=True)
-
-
 # canvas
-framedw = tk.Frame(root)
 
-canvas = tk.Canvas(framedw, width = 250, height = 250)  
-#canvas.pack(side="left",fill="both",expand=True)
-canvas.grid(row=0, column=0)
-fname = current_directory + "/IMG_20180402_120459.jpg"
-img = Image.open(fname)
-h,w = img.size
-scale = 250./max([h,w])
-h, w = int(h*scale),int(w*scale)
-img = img.resize((h,w))
-image = ImageTk.PhotoImage(img)
-image_id = canvas.create_image(125, 125, image=image, anchor="center") 
-this_canvas = canvas
-this_img_id = image_id
-this_img = image
+canvas = tk.Canvas(frame) 
 
 # text
-text = tk.Text(framedw, height=15)
-#text.pack(side = "right",fill="both",expand=True)
-text.grid(row=0, column=1, sticky='ns')
+text = tk.Text(frame, height=15)
+tysb = ttk.Scrollbar(frame, orient='vertical', command=text.yview)
+txsb = ttk.Scrollbar(frame, orient='horizontal', command=text.xview)
+text.configure(yscroll=tysb.set, xscroll=txsb.set)
 # fjson = fname + ".json"
 # if os.path.isfile(fjson):
 #     json_info = json.load(open(fjson))
 #     text.delete(1.0,tk.END)
 #     text.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
+
+this_text = text
+
+
+
+tree.grid(row=0, column=0, columnspan=2, sticky='NESW')
+ysb.grid(row=0, column=2, sticky='NS')
+xsb.grid(row=1, column=0, columnspan=2, sticky='EW')
+canvas.grid(row=2,column=0, sticky='NESW')
+text.grid(row=2, column=1, sticky='NS')
+tysb.grid(row=2, column=2, sticky='NS')
+txsb.grid(row=3, column=1, sticky='EW')
+frame.grid()
+
+frame.update()
+ 
+fname = current_directory + "/IMG_20180402_120459.jpg"
+img = Image.open(fname)
+h,w = img.size
+hh, ww = canvas.winfo_height(), canvas.winfo_width()
+scale = min([ww/h,hh/w])
+h, w = int(h*scale),int(w*scale)
+img = img.resize((h,w))
+print(f"{h},{w}")
+print(f"{hh},{ww}")
+image = ImageTk.PhotoImage(img)
+image_id = canvas.create_image(int(0.5*ww), int(0.5*hh), image=image, anchor="center") 
+this_canvas = canvas
+this_img_id = image_id
+this_img = image
+
 tt = ""
 exifdata = img.getexif()
 for tag_id in exifdata:
@@ -179,13 +202,11 @@ for tag_id in exifdata:
     if isinstance(data, bytes):
         #data = data.decode('utf-8', errors='ignore')
         pass
-    tt += f"{tag:27}: {data}\n"
+    tt += f"{tag}: {data}\n"
 text.delete(1.0,tk.END)
 text.insert(1.0,tt)
-this_text = text
 
-#framedw.grid()
-
-framedw.pack(side="top", fill="both", expand=True)
+geotags = get_geotagging(exifdata)
+print(geotags)
 
 root.mainloop()
