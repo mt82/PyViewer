@@ -25,6 +25,7 @@ def get_geotagging(exif):
     return geotagging
 
 current_directory = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/Pictures/from Google/Takeout/Google Photos/AcetAia 2018"
+#current_directory = "."
 this_tree = None
 this_canvas = None
 this_img_id = None
@@ -67,7 +68,8 @@ def onClickedItem(event):
         if tree.item(item,'values')[2] in img_format:
             img = Image.open(fname)
             h,w = img.size
-            scale = 250./max([h,w])
+            hh, ww = canvas.winfo_height(), canvas.winfo_width()
+            scale = min([ww/h,hh/w])
             h, w = int(h*scale),int(w*scale)
             img = img.resize((h,w))
             this_img = ImageTk.PhotoImage(img)
@@ -152,7 +154,7 @@ process_directory(root_node, current_directory,tree)
 canvas = tk.Canvas(frame) 
 
 # text
-text = tk.Text(frame, height=15)
+text = tk.Text(frame, height=15, wrap='none')
 tysb = ttk.Scrollbar(frame, orient='vertical', command=text.yview)
 txsb = ttk.Scrollbar(frame, orient='horizontal', command=text.xview)
 text.configure(yscroll=tysb.set, xscroll=txsb.set)
@@ -161,7 +163,6 @@ text.configure(yscroll=tysb.set, xscroll=txsb.set)
 #     json_info = json.load(open(fjson))
 #     text.delete(1.0,tk.END)
 #     text.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
-
 this_text = text
 
 
@@ -169,7 +170,7 @@ this_text = text
 tree.grid(row=0, column=0, columnspan=2, sticky='NESW')
 ysb.grid(row=0, column=2, sticky='NS')
 xsb.grid(row=1, column=0, columnspan=2, sticky='EW')
-canvas.grid(row=2,column=0, sticky='NESW')
+canvas.grid(row=2,column=0, rowspan=2, sticky='NESW')
 text.grid(row=2, column=1, sticky='NS')
 tysb.grid(row=2, column=2, sticky='NS')
 txsb.grid(row=3, column=1, sticky='EW')
@@ -177,36 +178,35 @@ frame.grid()
 
 frame.update()
  
-fname = current_directory + "/IMG_20180402_120459.jpg"
-img = Image.open(fname)
-h,w = img.size
-hh, ww = canvas.winfo_height(), canvas.winfo_width()
-scale = min([ww/h,hh/w])
-h, w = int(h*scale),int(w*scale)
-img = img.resize((h,w))
-print(f"{h},{w}")
-print(f"{hh},{ww}")
-image = ImageTk.PhotoImage(img)
-image_id = canvas.create_image(int(0.5*ww), int(0.5*hh), image=image, anchor="center") 
+# fname = current_directory + "/IMG_20180402_120459.jpg"
+# img = Image.open(fname)
+# h,w = img.size
+# hh, ww = canvas.winfo_height(), canvas.winfo_width()
+# scale = min([ww/h,hh/w])
+# h, w = int(h*scale),int(w*scale)
+# img = img.resize((h,w))
+# image = ImageTk.PhotoImage(img)
+# image_id = canvas.create_image(int(0.5*canvas.winfo_width()), int(0.5*canvas.winfo_height()), image=image, anchor="center") 
+image_id = canvas.create_image(int(0.5*canvas.winfo_width()), int(0.5*canvas.winfo_height()), anchor="center") 
 this_canvas = canvas
 this_img_id = image_id
-this_img = image
+#this_img = image
 
-tt = ""
-exifdata = img.getexif()
-for tag_id in exifdata:
-    # get the tag name, instead of human unreadable tag id
-    tag = TAGS.get(tag_id, tag_id)
-    data = exifdata.get(tag_id)
-    # decode bytes 
-    if isinstance(data, bytes):
-        #data = data.decode('utf-8', errors='ignore')
-        pass
-    tt += f"{tag}: {data}\n"
-text.delete(1.0,tk.END)
-text.insert(1.0,tt)
+# tt = ""
+# exifdata = img.getexif()
+# for tag_id in exifdata:
+#     # get the tag name, instead of human unreadable tag id
+#     tag = TAGS.get(tag_id, tag_id)
+#     data = exifdata.get(tag_id)
+#     # decode bytes 
+#     if isinstance(data, bytes):
+#         #data = data.decode('utf-8', errors='ignore')
+#         pass
+#     tt += f"{tag}: {data}\n"
+#text.delete(1.0,tk.END)
+text.insert(1.0,"")
 
-geotags = get_geotagging(exifdata)
-print(geotags)
+# geotags = get_geotagging(exifdata)
+# print(geotags)
 
 root.mainloop()
