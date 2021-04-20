@@ -31,6 +31,11 @@ this_canvas = None
 this_img_id = None
 this_img = None
 this_text = None
+this_text1 = None
+this_text2 = None
+this_tysb = None
+this_txsb = None
+this_nb = None
 
 extensions = ["jpg","jpeg","png","mp4","3gp","dng","gif","webp"]
 img_format = ["jpg","jpeg","png","dng","gif"]
@@ -54,7 +59,8 @@ def onClickedItem(event):
     global this_canvas
     global this_img_id
     global this_img
-    global this_text
+    global this_text1
+    global this_text2
     tree = event.widget
     item = tree.focus()
     if tree.item(item,'values')[2] != "":
@@ -74,11 +80,11 @@ def onClickedItem(event):
             img = img.resize((h,w))
             this_img = ImageTk.PhotoImage(img)
             this_canvas.itemconfig(this_img_id, image = this_img)
-            # fjson = fname + ".json"
-            # if os.path.isfile(fjson):
-            #     json_info = json.load(open(fjson))
-            #     this_text.delete(1.0,tk.END)
-            #     this_text.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
+            fjson = fname + ".json"
+            if os.path.isfile(fjson):
+                json_info = json.load(open(fjson))
+                this_text2.delete(1.0,tk.END)
+                this_text2.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
             tt = ""
             exifdata = img.getexif()
             for tag_id in exifdata:
@@ -89,8 +95,23 @@ def onClickedItem(event):
                 if not isinstance(data, bytes):
                     #data = data.decode('utf-8', errors='ignore')
                     tt += f"{tag:30}: {data}\n"
-            text.delete(1.0,tk.END)
-            text.insert(1.0,tt)
+            this_text1.delete(1.0,tk.END)
+            this_text1.insert(1.0,tt)
+
+def onNotebookTabChange(event):
+    global this_txsb
+    global this_tysb
+    global this_text1
+    global this_text2
+    global this_nb
+    if this_nb.tab(nb.select(), "text") == "JSON":
+        this_tysb.configure(command=text2.yview)
+        this_txsb.configure(command=text2.xview)
+        this_text2.configure(yscroll=this_tysb.set, xscroll=this_txsb.set)
+    elif this_nb.tab(nb.select(), "text") == "Metadata":
+        this_tysb.configure(command=text1.yview)
+        this_txsb.configure(command=text1.xview)
+        this_text1.configure(yscroll=this_tysb.set, xscroll=this_txsb.set)
 
 
 def onOpenFolder():
@@ -153,58 +174,39 @@ process_directory(root_node, current_directory,tree)
 
 canvas = tk.Canvas(frame) 
 
-# text
-text = tk.Text(frame, height=15, wrap='none')
-tysb = ttk.Scrollbar(frame, orient='vertical', command=text.yview)
-txsb = ttk.Scrollbar(frame, orient='horizontal', command=text.xview)
-text.configure(yscroll=tysb.set, xscroll=txsb.set)
-# fjson = fname + ".json"
-# if os.path.isfile(fjson):
-#     json_info = json.load(open(fjson))
-#     text.delete(1.0,tk.END)
-#     text.insert(1.0,json.dumps(json_info, indent=4, separators=(". ", " = ")))
-this_text = text
-
+# notebook
+nb = ttk.Notebook(frame)
+text1 = tk.Text(nb, height=15, wrap='none')
+nb.add(text1,text="Metadata")
+text2 = tk.Text(nb, height=15, wrap='none')
+nb.add(text2,text="JSON")
+tysb = ttk.Scrollbar(frame, orient='vertical', command=text1.yview)
+txsb = ttk.Scrollbar(frame, orient='horizontal', command=text1.xview)
+text1.configure(yscroll=tysb.set, xscroll=txsb.set)
+nb.bind("<<NotebookTabChanged>>", onNotebookTabChange)
+nb.enable_traversal()
+this_text1 = text1
+this_text2 = text2
+this_tysb = tysb
+this_txsb = txsb
+this_nb = nb
 
 
 tree.grid(row=0, column=0, columnspan=2, sticky='NESW')
 ysb.grid(row=0, column=2, sticky='NS')
 xsb.grid(row=1, column=0, columnspan=2, sticky='EW')
 canvas.grid(row=2,column=0, rowspan=2, sticky='NESW')
-text.grid(row=2, column=1, sticky='NS')
+nb.grid(row=2,column=1,sticky="NESW")
+# text.grid(row=2, column=1, sticky='NS')
 tysb.grid(row=2, column=2, sticky='NS')
 txsb.grid(row=3, column=1, sticky='EW')
 frame.grid()
 
 frame.update()
- 
-# fname = current_directory + "/IMG_20180402_120459.jpg"
-# img = Image.open(fname)
-# h,w = img.size
-# hh, ww = canvas.winfo_height(), canvas.winfo_width()
-# scale = min([ww/h,hh/w])
-# h, w = int(h*scale),int(w*scale)
-# img = img.resize((h,w))
-# image = ImageTk.PhotoImage(img)
-# image_id = canvas.create_image(int(0.5*canvas.winfo_width()), int(0.5*canvas.winfo_height()), image=image, anchor="center") 
+
 image_id = canvas.create_image(int(0.5*canvas.winfo_width()), int(0.5*canvas.winfo_height()), anchor="center") 
 this_canvas = canvas
 this_img_id = image_id
-#this_img = image
-
-# tt = ""
-# exifdata = img.getexif()
-# for tag_id in exifdata:
-#     # get the tag name, instead of human unreadable tag id
-#     tag = TAGS.get(tag_id, tag_id)
-#     data = exifdata.get(tag_id)
-#     # decode bytes 
-#     if isinstance(data, bytes):
-#         #data = data.decode('utf-8', errors='ignore')
-#         pass
-#     tt += f"{tag}: {data}\n"
-#text.delete(1.0,tk.END)
-text.insert(1.0,"")
 
 # geotags = get_geotagging(exifdata)
 # print(geotags)
