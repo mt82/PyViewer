@@ -7,6 +7,7 @@ from PIL import ImageTk,Image
 from PIL.ExifTags import TAGS
 from PIL.ExifTags import GPSTAGS
 import json
+import getpass
 
 def get_geotagging(exif):
     if not exif:
@@ -24,7 +25,8 @@ def get_geotagging(exif):
 
     return geotagging
 
-current_directory = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/Pictures/from Google/Takeout/Google Photos/AcetAia 2018"
+user = getpass.getuser()
+current_directory = f"C:/Users/{user}/OneDrive - Istituto Nazionale di Fisica Nucleare/Pictures/from Google/Takeout/Google Photos/AcetAia 2018"
 #current_directory = "."
 this_tree = None
 this_canvas = None
