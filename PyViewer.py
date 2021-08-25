@@ -53,7 +53,8 @@ class PyViewer(tk.Tk):
         # 1 - list content of the directory
         # 2 - filter images and videos
         # 3 - retrieve information
-        if self.current_directory is not None:
+        if self.current_directory is not None and \
+           self.current_directory != '':
             items_in_folder = os.listdir(self.current_directory)
             files_in_folder = [x for x in items_in_folder if os.path.isfile(os.path.join(self.current_directory,x))]
             image_in_folder = [x for x in files_in_folder if "image" in mimetypes.guess_type(x)[0]]
