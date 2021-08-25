@@ -84,6 +84,10 @@ class PyViewer(tk.Tk):
         self.frame1.grid(row=0, column=0, sticky='NESW')
         self.frame2.grid(row=0, column=1, sticky='NESW')
         self.frame3.grid(row=0, column=2, sticky='NESW')
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.columnconfigure(2, weight=1)
+        self.rowconfigure(0, weight=1)
         self.grid()
     
     def create_table(self, rows):
