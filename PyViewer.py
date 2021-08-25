@@ -94,10 +94,14 @@ class PyViewer(tk.Tk):
     def create_table(self, rows):
         keys = ["name","date"]
         titles = [
-            {"text": "filename", "width": 50, "type": 'l'},
-            {"text": "date", "width": 50, "type": 'l'}
+            {"text": "filename", "width": 30, "type": 'l'},
+            {"text": "date", "width": 30, "type": 'l'}
         ]
         self.tb = tb.Table(self.frame1, _keys_ = keys, titles = titles)
+        self.tb.host.grid(row=0, column=0, sticky='NESW')
+        self.frame1.columnconfigure(0, weight=1)
+        self.frame1.rowconfigure(0, weight=1)
+        self.frame1.grid()
         self.tb.add_rows(rows)
     
     def create_display(self):
