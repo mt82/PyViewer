@@ -9,6 +9,22 @@ from subprocess import PIPE, Popen
 
 exiftoolcmd = r"C:\Users\tenti\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
 
+def getVideoInfo(filepath):
+    # get video info: path, filename, date
+    path_raw = r'{}'.format(filepath)
+    process = Popen([exiftoolcmd , path_raw], stdout=PIPE, stderr=None, shell=True)
+    out = process.communicate()[0].decode("utf-8")
+    date = [x.split(" : ")[1].strip() for x in out.split('\r\n')[:-1] if x.split(" : ")[0].strip() == 'Create Date']
+    return {"name": os.path.basename(filepath),
+            "path": filepath,
+            "date": date[0] if len(date) > 0 else ""}
+
+def getImageInfo(filepath):
+    # get image info: path, filename, date
+    return {"name": os.path.basename(filepath),
+            "path": filepath,
+            "date": Image.open(filepath).getexif().get(306)}
+
 class PyViewer(tk.Tk):
     def __init__(self, *args):
         self.Tk = super(PyViewer, self)
@@ -18,13 +34,14 @@ class PyViewer(tk.Tk):
         self.current_directory = None
         self.create_menu()
         self.create_layout()
-        self.create_table()
-        self.create_display()
-        self.create_notebook()
+        #self.create_table()
+        #self.create_display()
+        #self.create_notebook()
     
     def onOpenFolder(self):
         self.current_directory = filedialog.askdirectory(initialdir = self.current_directory,title = "Open folder", mustexist = True)
-        self.getListOfFilesWithInfo()
+        items = self.getListOfFilesWithInfo()
+        self.create_table(items['image'])
     
     def getListOfFilesWithInfo(self):
         # dictionary with images and videos
@@ -36,27 +53,20 @@ class PyViewer(tk.Tk):
         # 1 - list content of the directory
         # 2 - filter images and videos
         # 3 - retrieve information
-        if self.current_directory is None:
-            return items
-        else:
+        if self.current_directory is not None:
             items_in_folder = os.listdir(self.current_directory)
             files_in_folder = [x for x in items_in_folder if os.path.isfile(os.path.join(self.current_directory,x))]
             image_in_folder = [x for x in files_in_folder if "image" in mimetypes.guess_type(x)[0]]
             video_in_folder = [x for x in files_in_folder if "video" in mimetypes.guess_type(x)[0]]
-            items["image"] = [{"name": img,
-                               "path": os.path.join(self.current_directory,img),
-                               "date": Image.open(os.path.join(self.current_directory,img)).getexif().get(306)} for img in image_in_folder]
-            videos = []
-            for vid in video_in_folder:
-                path = os.path.join(self.current_directory,vid)
-                path_raw = r'{}'.format(path)
-                process = Popen([exiftoolcmd , path_raw], stdout=PIPE, stderr=None, shell=True)
-                out = process.communicate()[0].decode("utf-8")
-                date = [x.split(" : ")[1].strip() for x in out.split('\r\n')[:-1] if x.split(" : ")[0].strip() == 'Create Date']
-                videos.append({"name": vid,
-                               "path": path,
-                               "date": date[0] if len(date) > 0 else ""})
-            items["video"] = videos
+            items["image"] = [getImageInfo(os.path.join(self.current_directory,img)) for img in image_in_folder]
+            items["video"] = [getVideoInfo(os.path.join(self.current_directory,vid)) for vid in video_in_folder]
+            # print(" == IMAGES ==")
+            # for it in items["image"]:
+            #     print(f"{it['name']}\t {it['date']}")
+            # print(" == VIDEOS ==")
+            # for it in items["video"]:
+            #     print(f"{it['name']}\t {it['date']}")
+        return items
             
     
     def create_menu(self):
@@ -76,14 +86,11 @@ class PyViewer(tk.Tk):
         self.frame3.grid(row=0, column=2, sticky='NESW')
         self.grid()
     
-    def create_table(self):
-        keys = ["filename","date"]
+    def create_table(self, rows):
+        keys = ["name","date"]
         titles = [
-            {"text": "filename", "width": 10, "type": 'l'},
-            {"text": "date", "width": 10, "type": 'l'}
-        ]
-        rows = [
-            {"filename": "pic.png", "date": "21/05/2021"}
+            {"text": "filename", "width": 50, "type": 'l'},
+            {"text": "date", "width": 50, "type": 'l'}
         ]
         self.tb = tb.Table(self.frame1, _keys_ = keys, titles = titles)
         self.tb.add_rows(rows)
