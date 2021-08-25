@@ -39,6 +39,7 @@ class PyViewer(tk.Tk):
         #self.create_notebook()
     
     def onOpenFolder(self):
+        # dialog window to select folder
         self.current_directory = filedialog.askdirectory(initialdir = self.current_directory,title = "Open folder", mustexist = True)
         items = self.getListOfFilesWithInfo()
         self.create_table(items['image'])
@@ -71,6 +72,7 @@ class PyViewer(tk.Tk):
             
     
     def create_menu(self):
+        # create menu
         self.menubar = tk.Menu(self)
         self.filemenu = tk.Menu(self.menubar)
         self.filemenu.add_command(label="Open Folder",command=self.onOpenFolder)
@@ -79,6 +81,7 @@ class PyViewer(tk.Tk):
         self.config(menu=self.menubar)
 
     def create_layout(self):
+        # create meain layout
         self.frame1 = tk.Frame(self)
         self.frame2 = tk.Frame(self)
         self.frame3 = tk.Frame(self)
@@ -92,6 +95,7 @@ class PyViewer(tk.Tk):
         self.grid()
     
     def create_table(self, rows):
+        # create table and fill it with itmes
         keys = ["name","date"]
         titles = [
             {"text": "filename", "width": 30, "type": 'l'},
@@ -105,9 +109,11 @@ class PyViewer(tk.Tk):
         self.tb.add_rows(rows)
     
     def create_display(self):
+        # create display of the images/videos
         self.canvas = tk.Canvas(self.frame2) 
 
     def create_notebook(self):
+        # create notebook to display info about items
         self.notebook = tk.ttk.Notebook(self.frame3)
 
 if __name__ == "__main__":
