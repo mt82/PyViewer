@@ -7,7 +7,8 @@ from tkinter import filedialog
 from PIL import Image
 from subprocess import PIPE, Popen
 
-exiftoolcmd = r"C:\Users\tenti\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
+#exiftoolcmd = r"C:\Users\tenti\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
+exiftoolcmd = r"C:\Users\mt\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
 
 def getVideoInfo(filepath):
     # get video info: path, filename, date
