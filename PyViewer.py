@@ -95,6 +95,9 @@ class PyViewer(tk.Tk):
         self.rowconfigure(0, weight=1)
         self.grid()
     
+    def handler(self,event):
+        print("this is handler")
+    
     def create_table(self, rows):
         # create table and fill it with itmes
         keys = ["name","date"]
@@ -108,6 +111,14 @@ class PyViewer(tk.Tk):
         self.frame1.rowconfigure(0, weight=1)
         self.frame1.grid()
         self.tb.add_rows(rows)
+
+        def bind_function_on_double_click(widget):
+            if widget.winfo_class() == "TLabel":
+                widget.bind('<Double-Button-1>', self.handler)
+            for child in widget.winfo_children():
+                bind_function_on_double_click(child)
+        
+        bind_function_on_double_click(self.tb.host)
     
     def create_display(self):
         # create display of the images/videos
