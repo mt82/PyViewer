@@ -95,8 +95,21 @@ class PyViewer(tk.Tk):
         self.rowconfigure(0, weight=1)
         self.grid()
     
-    def handler(self,event):
-        print("this is handler")
+    def get_selected_frame(self, label):
+        for frame in self.tb.list_canvas.winfo_children():
+            for it in frame.winfo_children():
+                if it.winfo_name() == label.winfo_name() and \
+                    frame.winfo_name() == label.winfo_parent().split('.')[-1]:
+                    return frame
+        return None
+    
+    def get_file_from_frame(self, frame):
+        return frame.winfo_children()[1].cget('text')
+    
+    def handler(self, event):
+        selected_frame = self.get_selected_frame(event.widget)
+        filename = self.get_file_from_frame(selected_frame)
+        print(f"{filename}")
     
     def create_table(self, rows):
         # create table and fill it with itmes
@@ -114,7 +127,7 @@ class PyViewer(tk.Tk):
 
         def bind_function_on_double_click(widget):
             if widget.winfo_class() == "TLabel":
-                widget.bind('<Double-Button-1>', self.handler)
+                widget.bind('<Button-1>', self.handler)
             for child in widget.winfo_children():
                 bind_function_on_double_click(child)
         
