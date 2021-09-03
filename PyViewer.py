@@ -59,14 +59,16 @@ class PyViewer(tk.Tk):
     def __init__(self, *args):
         self.Tk = super(PyViewer, self)
         self.Tk.__init__(*args)
+        self.Tk.withdraw()
         self.Tk.title("PyViewer")
         self.geometry("1200x400")
         self.current_directory = None
-        self.create_menu()
-        self.create_layout()
-        self.create_table([])
-        self.create_display()
-        self.create_notebook()
+        self.current_directory = filedialog.askdirectory(initialdir = self.current_directory,title = "Open folder", mustexist = True)
+        # self.create_menu()
+        # self.create_layout()
+        #self.create_table([])
+        #self.create_display()
+        #self.create_notebook()
     
     def onOpenFolder(self):
         # dialog window to select folder
@@ -124,7 +126,7 @@ class PyViewer(tk.Tk):
         self.grid()
     
     def onClickItem(self, event):
-        inspect(self)
+        #inspect(self)
         selected_frame = get_selected_frame(self.tb.list_canvas, event.widget)
         filename = get_file_from_frame(selected_frame)
         print(f"{filename}")
@@ -138,20 +140,21 @@ class PyViewer(tk.Tk):
             {"text": "date", "width": 30, "type": 'l'}
         ]
         self.tb = tb.Table(self.frame1, _keys_ = keys, titles = titles)
+        self.tb.host.grid(row=0, column=0, sticky='NESW')
         self.tb.add_rows(rows)
         self.frame1.columnconfigure(0, weight=1)
         self.frame1.rowconfigure(0, weight=1)
         self.frame1.grid()
-
+    
         # function to iteratively bind onClick event 
         # on all label of the table
-        # def bind_function_on_double_click(widget):
-        #     if widget.winfo_class() == "TLabel":
-        #         widget.bind('<Button-1>', self.onClickItem)
-        #     for child in widget.winfo_children():
-        #         bind_function_on_double_click(child)
+        def bind_function_on_double_click(widget):
+            if widget.winfo_class() == "TLabel":
+                widget.bind('<Button-1>', self.onClickItem)
+            for child in widget.winfo_children():
+                bind_function_on_double_click(child)
         
-        # bind_function_on_double_click(self.tb.host)
+        bind_function_on_double_click(self.tb.host)
     
     def create_display(self):
         self.frame2.config(background='blue')
