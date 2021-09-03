@@ -3,12 +3,16 @@ import tkinter as tk
 import paphra_tktable.table as tb
 import mimetypes
 
+from tkinter import ttk
 from tkinter import filedialog
-from PIL import Image
+from PIL import ImageTk,Image 
 from subprocess import PIPE, Popen
 
-#exiftoolcmd = r"C:\Users\tenti\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
-exiftoolcmd = r"C:\Users\mt\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
+
+exiftoolcmd_mt    = r"C:\Users\tenti\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
+exiftoolcmd_tenti = r"C:\Users\mt\OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
+
+exiftoolcmd = exiftoolcmd_mt if os.path.exists(exiftoolcmd_mt) else exiftoolcmd_tenti
 
 def getVideoInfo(filepath):
     # get video info: path, filename, date
@@ -26,6 +30,31 @@ def getImageInfo(filepath):
             "path": filepath,
             "date": Image.open(filepath).getexif().get(306)}
 
+    
+def get_selected_frame(list_canvas, label):
+    for frame in list_canvas.winfo_children():
+        for it in frame.winfo_children():
+            if it.winfo_name() == label.winfo_name() and \
+                frame.winfo_name() == label.winfo_parent().split('.')[-1]:
+                return frame
+    return None
+
+def get_sized_img(filename, w, h):
+    img = Image.open(filename)
+    img_h, img_w = img.size
+    scale = min([h/img_h, w/img_w])
+    img = img.resize((int(h*scale),int(w*scale)))
+    return img
+
+def get_file_from_frame(frame):
+    return frame.winfo_children()[1].cget('text')
+    
+def inspect(item, level = 0):
+    prefix = "  " * (level + 1)
+    print(f"{prefix}{item.winfo_name()}: {item.winfo_width()} x {item.winfo_height()} [{item.winfo_class()}] => {item.grid_size()}")
+    for child in item.winfo_children():
+        inspect(child, level + 1)
+    
 class PyViewer(tk.Tk):
     def __init__(self, *args):
         self.Tk = super(PyViewer, self)
@@ -35,9 +64,9 @@ class PyViewer(tk.Tk):
         self.current_directory = None
         self.create_menu()
         self.create_layout()
-        #self.create_table()
-        #self.create_display()
-        #self.create_notebook()
+        self.create_table([])
+        self.create_display()
+        self.create_notebook()
     
     def onOpenFolder(self):
         # dialog window to select folder
@@ -70,7 +99,6 @@ class PyViewer(tk.Tk):
             # for it in items["video"]:
             #     print(f"{it['name']}\t {it['date']}")
         return items
-            
     
     def create_menu(self):
         # create menu
@@ -95,23 +123,14 @@ class PyViewer(tk.Tk):
         self.rowconfigure(0, weight=1)
         self.grid()
     
-    def get_selected_frame(self, label):
-        for frame in self.tb.list_canvas.winfo_children():
-            for it in frame.winfo_children():
-                if it.winfo_name() == label.winfo_name() and \
-                    frame.winfo_name() == label.winfo_parent().split('.')[-1]:
-                    return frame
-        return None
-    
-    def get_file_from_frame(self, frame):
-        return frame.winfo_children()[1].cget('text')
-    
-    def handler(self, event):
-        selected_frame = self.get_selected_frame(event.widget)
-        filename = self.get_file_from_frame(selected_frame)
+    def onClickItem(self, event):
+        inspect(self)
+        selected_frame = get_selected_frame(self.tb.list_canvas, event.widget)
+        filename = get_file_from_frame(selected_frame)
         print(f"{filename}")
     
     def create_table(self, rows):
+        self.frame1.config(background='red')
         # create table and fill it with itmes
         keys = ["name","date"]
         titles = [
@@ -119,27 +138,38 @@ class PyViewer(tk.Tk):
             {"text": "date", "width": 30, "type": 'l'}
         ]
         self.tb = tb.Table(self.frame1, _keys_ = keys, titles = titles)
-        self.tb.host.grid(row=0, column=0, sticky='NESW')
+        self.tb.add_rows(rows)
         self.frame1.columnconfigure(0, weight=1)
         self.frame1.rowconfigure(0, weight=1)
         self.frame1.grid()
-        self.tb.add_rows(rows)
 
-        def bind_function_on_double_click(widget):
-            if widget.winfo_class() == "TLabel":
-                widget.bind('<Button-1>', self.handler)
-            for child in widget.winfo_children():
-                bind_function_on_double_click(child)
+        # function to iteratively bind onClick event 
+        # on all label of the table
+        # def bind_function_on_double_click(widget):
+        #     if widget.winfo_class() == "TLabel":
+        #         widget.bind('<Button-1>', self.onClickItem)
+        #     for child in widget.winfo_children():
+        #         bind_function_on_double_click(child)
         
-        bind_function_on_double_click(self.tb.host)
+        # bind_function_on_double_click(self.tb.host)
     
     def create_display(self):
+        self.frame2.config(background='blue')
         # create display of the images/videos
-        self.canvas = tk.Canvas(self.frame2) 
+        self.canvas = tk.Canvas(self.frame2)
+        self.canvas.grid(row=0, column=0, sticky='NESW')
+        self.canvas.columnconfigure(0, weight=1)
+        self.canvas.rowconfigure(0, weight=1)
+        self.frame2.grid()
 
     def create_notebook(self):
+        self.frame3.config(background='green')
         # create notebook to display info about items
         self.notebook = tk.ttk.Notebook(self.frame3)
+        self.notebook.grid(row=0, column=0, sticky='NESW')
+        self.notebook.columnconfigure(0, weight=1)
+        self.notebook.rowconfigure(0, weight=1)
+        self.frame3.grid()
 
 if __name__ == "__main__":
     # execute only if run as a script
