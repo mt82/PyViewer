@@ -1,6 +1,7 @@
 import os
 import sys
 import mimetypes
+import folium
 
 from PIL import ImageTk,Image 
 from subprocess import PIPE, Popen
@@ -23,6 +24,15 @@ def init_exiftool():
         raise BaseException("  -- exiftool not found --")
     exiftool_path = full_path
 
+def get_decimal_coord(gps):
+    coord = []
+    if gps is not None:
+        if all (k in gps for k in range(1,5)):
+            lat = (-1 if gps[1] == 'S' else 1) * (gps[2][0] + gps[2][1]/60. + gps[2][2]/3600.)
+            lng = (-1 if gps[3] == 'W' else 1) * (gps[4][0] + gps[4][1]/60. + gps[4][2]/3600.)
+            coord = [ lat, lng]
+    return coord
+
 def getVideoInfo(filepath):
     # get video info: path, filename, date
     path_raw = r'{}'.format(filepath)
@@ -33,15 +43,6 @@ def getVideoInfo(filepath):
             "path": filepath,
             "date": date[0] if len(date) > 0 else "",
             "gps" : []}
-
-def get_decimal_coord(gps):
-    coord = []
-    if gps is not None:
-        if all (k in gps for k in range(1,5)):
-            lat = (-1 if gps[1] == 'S' else 1) * (gps[2][0] + gps[2][0]/60. + gps[2][2]/3600.)
-            lng = (-1 if gps[3] == 'W' else 1) * (gps[4][0] + gps[4][0]/60. + gps[4][2]/3600.)
-            coord = [ lat, lng]
-    return coord
 
 def getImageInfo(filepath):
     # get image info: path, filename, date
@@ -76,6 +77,30 @@ def dump(items):
         for item in items[type]:
             print(f"    name: {item['name']} date: {item['date']} coord: {item['gps']}")
 
+def put_in_map(item):
+    center_lat = 0.
+    center_lon = 0.
+    counter = 0
+
+    for it in item:
+        if len(it["gps"]) == 2:
+            center_lat += it["gps"][0]
+            center_lon += it["gps"][1]
+            counter += 1
+    center_lat /= counter
+    center_lon /= counter
+
+    m = folium.Map(location=[center_lat,center_lon], tiles="OpenStreetMap", zoom_start=2)
+
+    for it in item:
+        if len(it["gps"]) == 2:
+            folium.Marker(
+                location=it["gps"],
+                popup=f"{it['name']}: {it['date']}",
+            ).add_to(m)
+    
+    m.save('map.html')
+
 def main():
     print("  -- this is utils module --")
     init_exiftool()
@@ -89,6 +114,8 @@ if __name__ == "__main__":
     elif nargs == 2:
         items = getListOfFilesWithInfo(sys.argv[1])
         dump(items)
+        put_in_map(items["image"])
+
     else:
         print("  -- Too many arguments --")
         sys.exit(1)
