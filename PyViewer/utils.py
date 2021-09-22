@@ -1,30 +1,38 @@
+"""
+utils package
+"""
+
 import os
 import sys
+from subprocess import PIPE, Popen
 import mimetypes
 import folium
 
-from PIL import ImageTk,Image 
-from subprocess import PIPE, Popen
+from PIL import Image
 
-exiftool_path = ""
+EXIFTOOL_PATH = ""
 
 def get_home():
+    """ get home directory from environmental variable """
     return os.path.expanduser("~")
 
 def get_exiftool_path():
-    relative_path = r"OneDrive - Istituto Nazionale di Fisica Nucleare\PyViewer\tools\exiftool-12.30\exiftool.exe"
+    """ get exiftool path """
+    relative_path = "OneDrive - Istituto Nazionale di Fisica Nucleare/" \
+        "PyViewer/tools/exiftool-12.30/exiftool.exe"
     home = get_home()
     full_path = os.path.join(home,relative_path)
     return full_path
 
-def init_exiftool():
-    global exiftool_path
+def get_and_check_exiftool_apth():
+    """ init exiftool path """
     full_path = get_exiftool_path()
     if not os.path.exists(full_path):
         raise BaseException("  -- exiftool not found --")
-    exiftool_path = full_path
+    return full_path
 
 def get_decimal_coord(gps):
+    """ transform coordinates to decimal format """
     coord = []
     if gps is not None:
         if all (k in gps for k in range(1,5)):
@@ -33,18 +41,21 @@ def get_decimal_coord(gps):
             coord = [ lat, lng]
     return coord
 
-def getVideoInfo(filepath):
+def get_video_info(filepath):
+    """ get video info """
     # get video info: path, filename, date
     path_raw = r'{}'.format(filepath)
-    process = Popen([exiftool_path , path_raw], stdout=PIPE, stderr=None, shell=True)
+    process = Popen([EXIFTOOL_PATH , path_raw], stdout=PIPE, stderr=None, shell=True)
     out = process.communicate()[0].decode("utf-8")
-    date = [x.split(" : ")[1].strip() for x in out.split('\r\n')[:-1] if x.split(" : ")[0].strip() == 'Create Date']
+    date = [x.split(" : ")[1].strip() for x in out.split('\r\n')[:-1] \
+        if x.split(" : ")[0].strip() == 'Create Date']
     return {"name": os.path.basename(filepath),
             "path": filepath,
             "date": date[0] if len(date) > 0 else "",
             "gps" : []}
 
-def getImageInfo(filepath):
+def get_image_info(filepath):
+    """ get image info """
     # get image info: path, filename, date
     img = Image.open(filepath)
     exif = img.getexif()
@@ -53,12 +64,13 @@ def getImageInfo(filepath):
             "date": exif.get(306),
             "gps" : get_decimal_coord(exif.get(34853))}
 
-def getListOfFilesWithInfo(directory):
+def get_list_of_files_with_info(directory):
+    """ get list of files with infos """
     # dictionary with images and videos
     # each items has filename, path and creation date
-    items = {"image" : [], 
-             "video" : [] }
-    
+    folder_items = {"image" : [], \
+        "video" : [] }
+
     # 1 - list content of the directory
     # 2 - filter images and videos
     # 3 - retrieve information
@@ -67,52 +79,52 @@ def getListOfFilesWithInfo(directory):
         files_in_folder = [x for x in items_in_folder if os.path.isfile(os.path.join(directory,x))]
         image_in_folder = [x for x in files_in_folder if "image" in mimetypes.guess_type(x)[0]]
         video_in_folder = [x for x in files_in_folder if "video" in mimetypes.guess_type(x)[0]]
-        items["image"] = [getImageInfo(os.path.join(directory,img)) for img in image_in_folder]
-        items["video"] = [getVideoInfo(os.path.join(directory,vid)) for vid in video_in_folder]
-    return items
+        folder_items["image"] = [get_image_info(os.path.join(directory,img)) \
+            for img in image_in_folder]
+        folder_items["video"] = [get_video_info(os.path.join(directory,vid)) \
+            for vid in video_in_folder]
+    return folder_items
 
-def dump(items):
-    for type in items:
-        print(f" -- {type} --")
-        for item in items[type]:
+def dump(folder_items):
+    """ dump info """
+    for item_format in folder_items:
+        print(f" -- {item_format} --")
+        for item in folder_items[item_format]:
             print(f"    name: {item['name']} date: {item['date']} coord: {item['gps']}")
 
 def put_in_map(item):
+    """ put markers in map """
     center_lat = 0.
     center_lon = 0.
     counter = 0
 
-    for it in item:
-        if len(it["gps"]) == 2:
-            center_lat += it["gps"][0]
-            center_lon += it["gps"][1]
+    for this_item in item:
+        if len(this_item["gps"]) == 2:
+            center_lat += this_item["gps"][0]
+            center_lon += this_item["gps"][1]
             counter += 1
     center_lat /= counter
     center_lon /= counter
 
-    m = folium.Map(location=[center_lat,center_lon], tiles="OpenStreetMap", zoom_start=2)
+    my_map = folium.Map(location=[center_lat,center_lon], tiles="OpenStreetMap", zoom_start=2)
 
-    for it in item:
-        if len(it["gps"]) == 2:
+    for this_item in item:
+        if len(this_item["gps"]) == 2:
             folium.Marker(
-                location=it["gps"],
-                popup=f"{it['name']}: {it['date']}",
-            ).add_to(m)
-    
-    m.save('map.html')
+                location=this_item["gps"],
+                popup=f"{this_item['name']}: {this_item['date']}",
+            ).add_to(my_map)
 
-def main():
-    print("  -- this is utils module --")
-    init_exiftool()
+    my_map.save('map.html')
 
-main()
+EXIFTOOL_PATH = get_and_check_exiftool_apth()
 
 if __name__ == "__main__":
-    nargs = len(sys.argv)
-    if nargs == 1:
+    NARGS = len(sys.argv)
+    if NARGS == 1:
         pass
-    elif nargs == 2:
-        items = getListOfFilesWithInfo(sys.argv[1])
+    elif NARGS == 2:
+        items = get_list_of_files_with_info(sys.argv[1])
         dump(items)
         put_in_map(items["image"])
 
