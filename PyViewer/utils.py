@@ -103,8 +103,9 @@ def put_in_map(item):
             center_lat += this_item["gps"][0]
             center_lon += this_item["gps"][1]
             counter += 1
-    center_lat /= counter
-    center_lon /= counter
+    if counter > 0:
+        center_lat /= counter
+        center_lon /= counter
 
     my_map = folium.Map(location=[center_lat,center_lon], tiles="OpenStreetMap", zoom_start=2)
 
