@@ -3,6 +3,7 @@ utils package
 """
 
 import os
+import io
 import sys
 from subprocess import PIPE, Popen
 import mimetypes
@@ -24,7 +25,7 @@ def get_exiftool_path():
     full_path = os.path.join(home,relative_path)
     return full_path
 
-def get_and_check_exiftool_apth():
+def get_and_check_exiftool_path():
     """ init exiftool path """
     full_path = get_exiftool_path()
     if not os.path.exists(full_path):
@@ -92,7 +93,7 @@ def dump(folder_items):
         for item in folder_items[item_format]:
             print(f"    name: {item['name']} date: {item['date']} coord: {item['gps']}")
 
-def put_in_map(item):
+def build_map(item):
     """ put markers in map """
     center_lat = 0.
     center_lon = 0.
@@ -116,9 +117,13 @@ def put_in_map(item):
                 popup=f"{this_item['name']}: {this_item['date']}",
             ).add_to(my_map)
 
-    my_map.save('map.html')
+    # save map data to data object
+    data = io.BytesIO()
+    my_map.save(data, close_file=False)
 
-EXIFTOOL_PATH = get_and_check_exiftool_apth()
+    return data
+
+EXIFTOOL_PATH = get_and_check_exiftool_path()
 
 if __name__ == "__main__":
     NARGS = len(sys.argv)
@@ -126,8 +131,7 @@ if __name__ == "__main__":
         pass
     elif NARGS == 2:
         items = get_list_of_files_with_info(sys.argv[1])
-        dump(items)
-        put_in_map(items["image"])
+        build_map(items["image"])
 
     else:
         print("  -- Too many arguments --")
