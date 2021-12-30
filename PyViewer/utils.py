@@ -93,29 +93,21 @@ def dump(folder_items):
         for item in folder_items[item_format]:
             print(f"    name: {item['name']} date: {item['date']} coord: {item['gps']}")
 
-def build_map(item):
+def build_map(items):
     """ put markers in map """
-    center_lat = 0.
-    center_lon = 0.
-    counter = 0
+    my_map = folium.Map(tiles="OpenStreetMap")
+    
+    points = []    
 
-    for this_item in item:
-        if len(this_item["gps"]) == 2:
-            center_lat += this_item["gps"][0]
-            center_lon += this_item["gps"][1]
-            counter += 1
-    if counter > 0:
-        center_lat /= counter
-        center_lon /= counter
-
-    my_map = folium.Map(location=[center_lat,center_lon], tiles="OpenStreetMap", zoom_start=2)
-
-    for this_item in item:
-        if len(this_item["gps"]) == 2:
+    for item in items:
+        if len(item["gps"]) == 2:
+            points.append([item["gps"][0], item["gps"][1]])
             folium.Marker(
-                location=this_item["gps"],
-                popup=f"{this_item['name']}: {this_item['date']}",
+                location=item["gps"],
+                popup=f"{item['name']}: {item['date']}",
             ).add_to(my_map)
+            
+    my_map.fit_bounds(points)
 
     # save map data to data object
     data = io.BytesIO()
