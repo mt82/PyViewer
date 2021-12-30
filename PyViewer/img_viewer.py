@@ -38,10 +38,10 @@ def prev_index(this_index, collection):
         this_index -= 1
     return this_index
 
-class App(QWidget):
+class MyViewerApp(QWidget):
     """ PyViewer Class """
 
-    def __init__(self):
+    def __init__(self, items):
         super().__init__()
         self.left = 100
         self.top = 100
@@ -50,7 +50,7 @@ class App(QWidget):
         self.img_index = 0
         self.vid_index = 0
         self.filename = ""
-        self.items = utl.get_list_of_files_with_info(FOLDER)
+        self.items = items
         self.init_indices()
         self.init_ui()
 
@@ -139,5 +139,5 @@ class App(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = App()
+    ex = MyViewerApp(utl.get_list_of_files_with_info(FOLDER))
     sys.exit(app.exec_())
