@@ -11,7 +11,10 @@ try:
 except ImportError:
     import utils as utl
 
-class MyApp(QWidget):
+FOLDER="C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
+    "Pictures/from Google/Takeout/Google Photos/Camper - Agosto 2020"
+
+class MyMapApp(QWidget):
     """
     Class to show map
     """
@@ -37,20 +40,19 @@ if __name__ == '__main__':
         }
     ''')
 
-    MYMAP = None
+    ITEMS = None
 
     NARGS = len(sys.argv)
     if NARGS == 1:
-        pass
+        ITEMS = utl.get_list_of_files_with_info(FOLDER)
     elif NARGS == 2:
-        items = utl.get_list_of_files_with_info(sys.argv[1])
-        MYMAP = utl.build_map(items["image"])
+        ITEMS = utl.get_list_of_files_with_info(sys.argv[1])
 
     else:
         print("  -- Too many arguments --")
         sys.exit(1)
 
-    myApp = MyApp(MYMAP)
+    myApp = MyMapApp(utl.build_map(ITEMS["image"]))
     myApp.show()
 
     try:
