@@ -5,7 +5,7 @@ PyViewer Module
 import sys
 from PyQt5.Qt import Qt
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QFileDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtGui import QPixmap
 
 try:
@@ -47,6 +47,7 @@ class MyViewerApp(QWidget):
         self.top = 100
         self.width = max_w
         self.height = max_h
+        self.setWindowTitle('Image Viewer')
         self.img_index = 0
         self.vid_index = 0
         self.filename = ""
@@ -126,16 +127,6 @@ class MyViewerApp(QWidget):
         elif event.key() == Qt.Key_Left:
             self.prev_index_image()
             self.load_image(self.get_image())
-
-    def openFileNameDialog(self):
-        """ open filename dialog """
-        options = QFileDialog.Options()
-        options |= QFileDialog.DontUseNativeDialog
-        self.filename = QFileDialog.getOpenFileName(self, \
-            "QFileDialog.getOpenFileName()", \
-            "", \
-            "All Files (*);;Python Files (*.py)", \
-            options=options)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
