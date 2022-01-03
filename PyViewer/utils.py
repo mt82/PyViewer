@@ -131,6 +131,7 @@ def build_map(items):
 
     return data
 
+
 def next_index(this_index, collection):
     """ get next index """
     if len(collection) == 0:
@@ -152,6 +153,7 @@ def prev_index(this_index, collection):
         this_index -= 1
     return this_index
 
+
 EXIFTOOL_PATH = get_and_check_exiftool_path()
 
 if __name__ == "__main__":
@@ -159,8 +161,8 @@ if __name__ == "__main__":
     if NARGS == 1:
         pass
     elif NARGS == 2:
-        items = get_list_of_files_with_info(sys.argv[1])
-        build_map(items["image"])
+        _items = get_list_of_files_with_info(sys.argv[1])
+        build_map(_items["image"])
 
     else:
         print("  -- Too many arguments --")

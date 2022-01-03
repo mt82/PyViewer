@@ -1,9 +1,12 @@
+"""
+Video Viewer
+"""
+
 import sys
-from types import prepare_class
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-from PyQt5.QtWidgets import QApplication, QFileDialog, QStyle, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QVBoxLayout, QWidget
 
 try:
     import PyViewer.utils as utl
@@ -15,9 +18,18 @@ FOLDER = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
 
 max_w, max_h = 1000, 1000
 
+
 class MyVideoViewerApp(QWidget):
+    """Video Viewer
+    """
 
     def __init__(self, items, parent=None):
+        """Video Viewer constructor
+
+        Args:
+            items (list): list of items
+            parent (QWidget, optional): parent QWidget. Defaults to None.
+        """
         super().__init__(parent)
         self.left = 100
         self.top = 100
@@ -33,23 +45,23 @@ class MyVideoViewerApp(QWidget):
         """ init indices """
         self.vid_index = 0 if len(self.items) > 0 else -1
 
-    def init_video(self, item):
-        self.media_player.setMedia(
-            QMediaContent(QUrl.fromLocalFile(item["path"])))
-
     def get_video(self):
         """ get current video """
         if self.vid_index == -1:
             return None
         else:
             return self.items[self.vid_index]
-    
-    def load_video(self,vid):
+
+    def load_video(self, vid):
+        """Load video
+
+        Args:
+            vid (dict): dictionary describing item
+        """
         self.setWindowTitle(vid["name"])
         self.media_player.setMedia(
             QMediaContent(QUrl.fromLocalFile(vid["path"])))
 
- 
     def prev_index_video(self):
         """ decrement index of videos """
         self.vid_index = utl.prev_index(self.vid_index, self.items)
@@ -69,8 +81,9 @@ class MyVideoViewerApp(QWidget):
         self.media_player.setVideoOutput(self.video_widget)
         self.load_video(self.get_video())
         self.show()
-    
+
     def mousePressEvent(self, event):
+        """ mouse click event """
         if event.button() == Qt.LeftButton:
             if self.media_player.state() == QMediaPlayer.PlayingState:
                 self.media_player.pause()
@@ -82,16 +95,26 @@ class MyVideoViewerApp(QWidget):
         is_playing = (self.media_player.state() == QMediaPlayer.PlayingState)
         if event.key() == Qt.Key_Space:
             self.next_index_video()
-            self.init_video(self.get_video())
-            self.media_player.play() if is_playing else self.media_player.pause()
+            self.load_video(self.get_video())
+            if is_playing:
+                self.media_player.play()
+            else:
+                self.media_player.pause()
         elif event.key() == Qt.Key_Right:
             self.next_index_video()
-            self.init_video(self.get_video())
-            self.media_player.play() if is_playing else self.media_player.pause()
+            self.load_video(self.get_video())
+            if is_playing:
+                self.media_player.play()
+            else:
+                self.media_player.pause()
         elif event.key() == Qt.Key_Left:
             self.prev_index_video()
-            self.init_video(self.get_video())
-            self.media_player.play() if is_playing else self.media_player.pause()
+            self.load_video(self.get_video())
+            if is_playing:
+                self.media_player.play()
+            else:
+                self.media_player.pause()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

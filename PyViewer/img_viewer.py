@@ -1,5 +1,5 @@
 """
-PyViewer Module
+Image Viewer
 """
 
 import sys
