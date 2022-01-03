@@ -2,12 +2,9 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QFileDialog
 
-try:
-    import PyViewer.utils as utl
-    from PyViewer.img_viewer import *
-    from PyViewer.map_viewer import *
-except ImportError:
-    import utils as utl
+import PyViewer.utils as utl
+from PyViewer.img_viewer import *
+from PyViewer.map_viewer import *
 
 FOLDER = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
     "Pictures/from Google/Takeout/Google Photos/Camper - Agosto 2020"
