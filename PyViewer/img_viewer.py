@@ -13,10 +13,11 @@ try:
 except ImportError:
     import utils as utl
 
-FOLDER="C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
+FOLDER = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
     "Pictures/from Google/Takeout/Google Photos/Camper - Agosto 2020"
 
 max_w, max_h = 1000, 1000
+
 
 def next_index(this_index, collection):
     """ get next index """
@@ -28,6 +29,7 @@ def next_index(this_index, collection):
         this_index += 1
     return this_index
 
+
 def prev_index(this_index, collection):
     """ get previous index """
     if len(collection) == 0:
@@ -38,7 +40,8 @@ def prev_index(this_index, collection):
         this_index -= 1
     return this_index
 
-class MyViewerApp(QWidget):
+
+class MyImageViewerApp(QWidget):
     """ PyViewer Class """
 
     def __init__(self, items):
@@ -96,8 +99,9 @@ class MyViewerApp(QWidget):
         pixmap = QPixmap(img["path"])
         scale_factor = max_w/pixmap.width() \
             if max_w/pixmap.width() < max_h/pixmap.height() \
-            else  max_h/pixmap.height()
-        width, height = int(pixmap.width()*scale_factor), int(pixmap.height()*scale_factor)
+            else max_h/pixmap.height()
+        width, height = int(
+            pixmap.width()*scale_factor), int(pixmap.height()*scale_factor)
         pixmap = pixmap.scaled(width, height, QtCore.Qt.KeepAspectRatio)
         self.label.setPixmap(pixmap)
         self.resize(width, height)
@@ -128,7 +132,8 @@ class MyViewerApp(QWidget):
             self.prev_index_image()
             self.load_image(self.get_image())
 
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = MyViewerApp(utl.get_list_of_files_with_info(FOLDER))
+    ex = MyImageViewerApp(utl.get_list_of_files_with_info(FOLDER))
     sys.exit(app.exec_())

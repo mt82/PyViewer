@@ -11,15 +11,17 @@ try:
 except ImportError:
     import utils as utl
 
-FOLDER="C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
+FOLDER = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
     "Pictures/from Google/Takeout/Google Photos/Camper - Agosto 2020"
 
 max_w, max_h = 1000, 1000
 
-class MyMapApp(QWidget):
+
+class MyMapViewerApp(QWidget):
     """
     Class to show map
     """
+
     def __init__(self, data):
         super().__init__()
         self.width = max_w
@@ -44,5 +46,6 @@ if __name__ == '__main__':
             font-size: 35px;
         }
     ''')
-    ex = MyMapApp(utl.build_map(utl.get_list_of_files_with_info(FOLDER)["image"]))
+    ex = MyMapViewerApp(utl.build_map(
+        utl.get_list_of_files_with_info(FOLDER)["image"]))
     sys.exit(app.exec_())
