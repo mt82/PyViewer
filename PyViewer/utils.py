@@ -131,6 +131,26 @@ def build_map(items):
 
     return data
 
+def next_index(this_index, collection):
+    """ get next index """
+    if len(collection) == 0:
+        this_index = -1
+    elif this_index == len(collection) - 1:
+        this_index = 0
+    else:
+        this_index += 1
+    return this_index
+
+
+def prev_index(this_index, collection):
+    """ get previous index """
+    if len(collection) == 0:
+        this_index = -1
+    elif this_index == 0:
+        this_index = len(collection) - 1
+    else:
+        this_index -= 1
+    return this_index
 
 EXIFTOOL_PATH = get_and_check_exiftool_path()
 

@@ -19,28 +19,6 @@ FOLDER = "C:/Users/mt/OneDrive - Istituto Nazionale di Fisica Nucleare/" \
 max_w, max_h = 1000, 1000
 
 
-def next_index(this_index, collection):
-    """ get next index """
-    if len(collection) == 0:
-        this_index = -1
-    elif this_index == len(collection) - 1:
-        this_index = 0
-    else:
-        this_index += 1
-    return this_index
-
-
-def prev_index(this_index, collection):
-    """ get previous index """
-    if len(collection) == 0:
-        this_index = -1
-    elif this_index == 0:
-        this_index = len(collection) - 1
-    else:
-        this_index -= 1
-    return this_index
-
-
 class MyImageViewerApp(QWidget):
     """ PyViewer Class """
 
@@ -52,46 +30,28 @@ class MyImageViewerApp(QWidget):
         self.height = max_h
         self.setWindowTitle('Image Viewer')
         self.img_index = 0
-        self.vid_index = 0
-        self.filename = ""
         self.items = items
         self.init_indices()
         self.init_ui()
 
     def init_indices(self):
         """ init indices """
-        self.img_index = 0 if len(self.items["image"]) > 0 else -1
-        self.vid_index = 0 if len(self.items["video"]) > 0 else -1
+        self.img_index = 0 if len(self.items) > 0 else -1
 
     def next_index_image(self):
         """ increment index of images """
-        self.img_index = next_index(self.img_index, self.items["image"])
-
-    def next_index_video(self):
-        """ increment index of videos """
-        self.vid_index = next_index(self.vid_index, self.items["video"])
+        self.img_index = utl.next_index(self.img_index, self.items)
 
     def prev_index_image(self):
         """ decrement index of images """
-        self.img_index = prev_index(self.img_index, self.items["image"])
-
-    def prev_index_video(self):
-        """ decrement index of videos """
-        self.vid_index = prev_index(self.vid_index, self.items["video"])
+        self.img_index = utl.prev_index(self.img_index, self.items)
 
     def get_image(self):
         """ get current image """
         if self.img_index == -1:
             return None
         else:
-            return self.items["image"][self.img_index]
-
-    def get_video(self):
-        """ get current video """
-        if self.vid_index == -1:
-            return None
-        else:
-            return self.items["video"][self.vid_index]
+            return self.items[self.img_index]
 
     def load_image(self, img):
         """ load image """
@@ -135,5 +95,5 @@ class MyImageViewerApp(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = MyImageViewerApp(utl.get_list_of_files_with_info(FOLDER))
+    ex = MyImageViewerApp(utl.get_list_of_files_with_info(FOLDER)["image"])
     sys.exit(app.exec_())
